@@ -8,8 +8,8 @@ services:
     environment:
       - DOCKER_TLS_CERTDIR=/certs
     volumes:
-      - jenkins-docker-certs:/certs/client
-      - jenkins-data:/var/jenkins_home
+      - /Users/Shared/.local/share/jenkins-docker-certs:/certs/client
+      - /Users/Shared/.local/share/jenkins-data:/var/jenkins_home
     ports:
       - "2376:2376"
     networks:
@@ -29,15 +29,11 @@ services:
       - "8080:8080"
       - "50000:50000"
     volumes:
-      - jenkins-data:/var/jenkins_home
-      - jenkins-docker-certs:/certs/client:ro
+      - /Users/Shared/.local/share/jenkins-data:/var/jenkins_home
+      - /Users/Shared/.local/share/jenkins-docker-certs:/certs/client:ro
     networks:
       - jenkins
 
 networks:
   jenkins:
     external: true
-
-volumes:
-  jenkins-docker-certs:
-  jenkins-data:
