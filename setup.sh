@@ -6,10 +6,10 @@
 docker network create jenkins
 
 # Build a new docker image
-docker-compose build
+docker compose build
 
 # Run your own myjenkins-blueocean image as a container in Docker
-docker-compose up -d
+docker compose up -d
 
 # Accessing the Docker container
 #docker exec -it jenkins-blueocean bash
