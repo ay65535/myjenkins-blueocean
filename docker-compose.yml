@@ -13,6 +13,7 @@ services:
     volumes:
       - /Users/Shared/.local/share/jenkins-docker-certs:/certs/client
       - /Users/Shared/.local/share/jenkins-data:/var/jenkins_home
+      - /Users/Shared/.local/share/proxy-certs:/usr/local/share/ca-certificates/proxy-certs
     ports:
       - "2376:2376"
     networks:
@@ -42,6 +43,7 @@ services:
     volumes:
       - /Users/Shared/.local/share/jenkins-data:/var/jenkins_home
       - /Users/Shared/.local/share/jenkins-docker-certs:/certs/client:ro
+      - /Users/Shared/.local/share/proxy-certs:/usr/local/share/ca-certificates/proxy-certs
     networks:
       - jenkins
 

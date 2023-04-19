@@ -2,8 +2,10 @@
 
 # https://www.jenkins.io/doc/book/installing/docker/
 
-# Create a bridge network in Docker
-docker network create jenkins
+# Create a bridge network in Docker if not exists
+if ! docker network ls | grep -q 'jenkins'; then
+    docker network create jenkins
+fi
 
 # Build a new docker image
 docker compose build
