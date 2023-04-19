@@ -34,9 +34,10 @@ services:
       - DOCKER_HOST=tcp://docker:2376
       - DOCKER_CERT_PATH=/certs/client
       - DOCKER_TLS_VERIFY=1
-      - http_proxy
-      - https_proxy
-      - no_proxy
+      - JENKINS_URL=${JENKINS_URL}
+      - http_proxy=${http_proxy}
+      - https_proxy=${https_proxy}
+      - no_proxy=${no_proxy}
     ports:
       - "8080:8080"
       - "50000:50000"

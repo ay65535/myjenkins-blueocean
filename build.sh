@@ -21,3 +21,6 @@ docker compose up -d
 #docker logs jenkins-blueocean
 
 # Accessing the Jenkins home directory
+
+# Cleanup the Docker container and volume
+# docker compose down --remove-orphans --volumes

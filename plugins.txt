@@ -1,0 +1,9 @@
+blueocean
+docker-workflow
+powershell
+parameterized-trigger
+nodelabelparameter
+configuration-as-code
+pipeline-utility-steps
+ws-cleanup
+timestamper
