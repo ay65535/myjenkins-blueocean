@@ -7,9 +7,9 @@ services:
     privileged: true
     environment:
       - DOCKER_TLS_CERTDIR=/certs
-      - http_proxy
-      - https_proxy
-      - no_proxy
+      - http_proxy=${http_proxy}
+      - https_proxy=${https_proxy}
+      - no_proxy=${no_proxy}
     volumes:
       - /Users/Shared/.local/share/jenkins-docker-certs:/certs/client
       - /Users/Shared/.local/share/jenkins-data:/var/jenkins_home

@@ -11,14 +11,14 @@ fi
 docker compose build
 
 # Run your own myjenkins-blueocean image as a container in Docker
-docker compose up -d
+JENKINS_URL="http://$(hostname):8080" docker compose up -d
+echo "$JENKINS_URL"
 
 # Accessing the Docker container
 #docker exec -it jenkins-blueocean bash
 
 # Accessing the Docker logs
-#docker logs jenkins-docker
-#docker logs jenkins-blueocean
+#docker compose logs -f
 
 # Accessing the Jenkins home directory
 
