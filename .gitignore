@@ -77,6 +77,8 @@ $RECYCLE.BIN/
 
 ### for this repo
 
+.env
 *.cer
 *.crt
 *.pem
+dockerfile.sh
