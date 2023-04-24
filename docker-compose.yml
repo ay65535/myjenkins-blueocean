@@ -1,0 +1,56 @@
+version: "3.9"
+
+services:
+  jenkins-docker:
+    image: docker:dind
+    container_name: jenkins-docker
+    privileged: true
+    environment:
+      - DOCKER_TLS_CERTDIR=/certs
+      - http_proxy=${http_proxy}
+      - https_proxy=${https_proxy}
+      - no_proxy=${no_proxy}
+    volumes:
+      - ../../../../jenkins/docker-certs:/certs/client
+      - ../../../../jenkins/home:/var/jenkins_home
+      - ../../../../jenkins/ca-certs:/usr/local/share/ca-certificates
+    ports:
+      - "2376:2376"
+    networks:
+      - jenkins
+    # docker:dind の引数。Linux環境でストレージ効率を最適化するためのオプション。
+    command: --storage-driver overlay2
+
+  jenkins-blueocean:
+    build:
+      context: .
+      args:
+        # ホストの環境変数をビルド時の引数 (ARG) として受け取る
+        PROXY: $PROXY
+        NO_PROXY: $NO_PROXY
+        TRUST_HOST: $TRUST_HOST
+    image: myjenkins-blueocean:2.387.2-1
+    container_name: jenkins-blueocean
+    restart: on-failure
+    environment:
+      - DOCKER_HOST=tcp://docker:2376
+      - DOCKER_CERT_PATH=/certs/client
+      - DOCKER_TLS_VERIFY=1
+      - JENKINS_URL=${JENKINS_URL}
+      - JENKINS_ADMIN_USER=${JENKINS_ADMIN_USER}
+      - JENKINS_ADMIN_PASS=${JENKINS_ADMIN_PASS}
+      - http_proxy=${http_proxy}
+      - https_proxy=${https_proxy}
+      - no_proxy=${no_proxy}
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - ../../../../jenkins/home:/var/jenkins_home
+      - ../../../../jenkins/docker-certs:/certs/client:ro
+      - ../../../../jenkins/ca-certs:/usr/local/share/ca-certificates
+    networks:
+      - jenkins
+
+networks:
+  jenkins:
