@@ -1,9 +1,11 @@
+ARG JENKINS_VERSION=2.387.2
+
 #
 # Build stage (Java)
 #
 
 # 公式Jenkinsイメージをベースにする
-FROM jenkins/jenkins:2.387.2 as javabuild
+FROM jenkins/jenkins:${JENKINS_VERSION} as javabuild
 
 # Set the ARG for the proxy server
 ARG PROXY
@@ -18,7 +20,7 @@ COPY scripts/setenv.sh scripts/update-cacert.sh scripts/install-cert.sh /usr/loc
 COPY conf/my_proxy.crt /usr/local/share/ca-certificates/
 
 # プラグインリストファイルをコピー
-COPY conf/plugins.txt /usr/share/jenkins/ref/
+COPY conf/plugins.txt /
 
 RUN update-cacert.sh && \
   setenv.sh >/etc/environment && \
@@ -35,7 +37,7 @@ RUN javac /InstallCert/InstallCert.java && \
 # jenkins-plugin-cliを使用してプラグインをインストール
 USER jenkins
 RUN set -a && . /etc/environment && set +a && \
-  jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+  jenkins-plugin-cli --plugin-file /plugins.txt
 
 
 #
@@ -43,7 +45,7 @@ RUN set -a && . /etc/environment && set +a && \
 #
 
 # 公式Jenkinsイメージをベースにする
-FROM jenkins/jenkins:2.387.2
+FROM jenkins/jenkins:${JENKINS_VERSION}
 
 # ビルド引数を定義
 ARG PROXY
@@ -51,6 +53,9 @@ ARG NO_PROXY
 
 # セットアップウィザードをスキップするための環境変数を設定
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
+
+ENV JENKINS_ADMIN_USER=$JENKINS_ADMIN_USER
+ENV JENKINS_ADMIN_PASS=$JENKINS_ADMIN_PASS
 
 USER root
 
@@ -60,13 +65,16 @@ COPY --from=javabuild /InstallCert/*.class /usr/local/bin/
 # Copy installed plugins from javabuild stage to final stage
 COPY --from=javabuild /usr/share/jenkins/ref/plugins /usr/share/jenkins/ref/plugins
 
+# 管理ユーザを作成するスクリプトをコピー
+COPY scripts/create_admin_user.groovy /usr/share/jenkins/ref/init.groovy.d/
+
 # Add your proxy certificate
 COPY conf/my_proxy.crt /usr/local/share/ca-certificates/
 
 COPY scripts/update-cacert.sh scripts/install-cert.sh /usr/local/bin/
 
 # Copy custom entrypoint script
-COPY scripts/entrypoint.sh /entrypoint.sh
+COPY --chown=jenkins:jenkins  scripts/entrypoint.sh /entrypoint.sh
 
 # `http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY` は
 # ビルド時にだけプロキシを使用し、イメージには残さないためにコマンドの前に毎回記述しています。
@@ -87,8 +95,10 @@ RUN http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY \
   apt-get update \
   && http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY DEBIAN_FRONTEND=noninteractive \
   apt-get install -y --no-install-recommends docker-ce-cli \
-  && rm -rf /var/lib/apt/lists/*
-# && unset http_proxy https_proxy no_proxy
+  && rm -rf /var/lib/apt/lists/* \
+  && echo 'jenkins ALL=(ALL) NOPASSWD: /usr/local/bin/update-cacert.sh, /usr/local/bin/install-cert.sh' >/etc/sudoers.d/jenkins-scripts \
+  && chmod 0440 /etc/sudoers.d/jenkins-scripts
+  # && unset http_proxy https_proxy no_proxy
 
 USER jenkins
 

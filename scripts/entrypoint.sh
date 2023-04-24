@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Execute update-cacert.sh
-/usr/local/bin/update-cacert.sh
+sudo /usr/local/bin/update-cacert.sh
 
 # Execute install-cert.sh
-/usr/local/bin/install-cert.sh
+sudo /usr/local/bin/install-cert.sh
 
 # JENKINS_URLが設定されていない場合、現在のホスト名を使用して設定
 if [ -z "$JENKINS_URL" ]; then

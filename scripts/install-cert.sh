@@ -5,17 +5,14 @@
 # export TRUST_HOST='example.com:8443,example2.com:443'
 # ./install-cert.sh
 
+# if $PROXY_SERVER not set, then skip
 if [ -z "$PROXY_SERVER" ]; then
-  echo "Error: Proxy server is not specified. Please set the PROXY_SERVER environment variable."
-  exit 1
+  echo "Skip: PROXY_SERVER is not set."
+  exit 0
 fi
 
 TRUST_HOST=${TRUST_HOST:-updates.jenkins.io:443}
 IFS=',' read -ra TRUST_HOSTS <<<"${TRUST_HOST}"
-if [ "${#TRUST_HOSTS[@]}" -eq 0 ]; then
-  echo "Error: No trust hosts specified. Please set the TRUST_HOST environment variable with a comma-separated list of hosts."
-  exit 1
-fi
 
 for TARGET_ARG in "${TRUST_HOSTS[@]}"; do
   IFS=":" read -ra TARGET_PARTS <<<"${TARGET_ARG}"
