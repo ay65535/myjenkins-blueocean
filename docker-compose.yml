@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3.3"
 
 services:
   jenkins-docker:
@@ -11,9 +11,9 @@ services:
       - https_proxy=${https_proxy}
       - no_proxy=${no_proxy}
     volumes:
-      - ../../../../jenkins/docker-certs:/certs/client
-      - ../../../../jenkins/home:/var/jenkins_home
-      - ../../../../jenkins/ca-certs:/usr/local/share/ca-certificates
+      - ./data/docker-certs:/certs/client
+      - ./data/ca-certs:/usr/local/share/ca-certificates
+      - ./data/jenkins_home:/var/jenkins_home
     ports:
       - "2376:2376"
     networks:
@@ -36,19 +36,21 @@ services:
       - DOCKER_HOST=tcp://docker:2376
       - DOCKER_CERT_PATH=/certs/client
       - DOCKER_TLS_VERIFY=1
+      - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}
       - JENKINS_URL=${JENKINS_URL}
       - http_proxy=${http_proxy}
       - https_proxy=${https_proxy}
       - no_proxy=${no_proxy}
-    secrets:
-      - jenkins-secret
     ports:
       - "8080:8080"
       - "50000:50000"
     volumes:
-      - ../../../../jenkins/home:/var/jenkins_home
-      - ../../../../jenkins/docker-certs:/certs/client:ro
-      - ../../../../jenkins/ca-certs:/usr/local/share/ca-certificates
+      - ./data/docker-certs:/certs/client:ro
+      - ./data/ca-certs:/usr/local/share/ca-certificates
+      - ./data/jenkins_home:/var/jenkins_home
+      - ./conf/etc-environment.conf:/etc/environment
+    secrets:
+      - jenkins-secret
     networks:
       - jenkins
 
@@ -57,4 +59,4 @@ networks:
 
 secrets:
   jenkins-secret:
-    file: .secret
+    file: conf/jenkins-secret.conf

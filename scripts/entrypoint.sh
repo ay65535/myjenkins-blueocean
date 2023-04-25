@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Fix permisseions
+sudo chown -R jenkins:jenkins /var/jenkins_home/
+ls -laF --color /var/jenkins_home/
+
+# Resolve proxy related envs
+# set -a && . /etc/environment && set +a
+
+env | grep -iE 'proxy|java|jdk|jenkins|docker' | sort
+
 # Execute update-cacert.sh
 sudo /usr/local/bin/update-cacert.sh
 
@@ -8,8 +17,19 @@ sudo /usr/local/bin/install-cert.sh
 
 # JENKINS_URLが設定されていない場合、現在のホスト名を使用して設定
 if [ -z "$JENKINS_URL" ]; then
-  lowercase_hostname=$(echo "$HOSTNAME" | tr '[:upper:]' '[:lower:]')
-  export JENKINS_URL="http://${lowercase_hostname}:8080"
+  os_name=$(uname)
+  if [[ "$os_name" == "Linux" ]] || [[ "$os_name" == "Darwin" ]]; then
+    JENKINS_HOST=$(hostname -f)
+  elif [[ "$os_name" == "MINGW"* ]] || [[ "$os_name" == "MSYS"* ]]; then
+    JENKINS_HOST=$(echo "$HOSTNAME.$USERDNSDOMAIN" | tr '[:upper:]' '[:lower:]')
+  else
+    JENKINS_HOST=localhost
+  fi
+
+  JENKINS_URL="http://${JENKINS_HOST}:8080/"
+  echo "JENKINS_URL : $JENKINS_URL"
+
+  export JENKINS_HOST JENKINS_URL
 fi
 
 ## How to check the original entrypoint command:

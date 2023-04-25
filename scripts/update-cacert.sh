@@ -12,6 +12,5 @@ for cert in "${CERTS[@]}"; do
   filename="${cert%.*}"
   alias=$(basename "$filename")
   # Import proxy certificate into Java cacerts
-  keytool -importcert -file "$cert" -alias "$alias" -trustcacerts \
-    -cacerts -storepass changeit -noprompt
+  keytool -importcert -file "$cert" -alias "$alias" -trustcacerts -cacerts -storepass changeit -noprompt
 done

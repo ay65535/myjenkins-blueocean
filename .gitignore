@@ -78,8 +78,10 @@ $RECYCLE.BIN/
 ### for this repo
 
 .env
-.secret
 *.cer
 *.crt
 *.pem
+*secret*
+/data/
 dockerfile.sh
+etc-environment.conf
