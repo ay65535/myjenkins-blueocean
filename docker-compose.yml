@@ -37,11 +37,11 @@ services:
       - DOCKER_CERT_PATH=/certs/client
       - DOCKER_TLS_VERIFY=1
       - JENKINS_URL=${JENKINS_URL}
-      - JENKINS_ADMIN_USER=${JENKINS_ADMIN_USER}
-      - JENKINS_ADMIN_PASS=${JENKINS_ADMIN_PASS}
       - http_proxy=${http_proxy}
       - https_proxy=${https_proxy}
       - no_proxy=${no_proxy}
+    secrets:
+      - jenkins-secret
     ports:
       - "8080:8080"
       - "50000:50000"
@@ -54,3 +54,7 @@ services:
 
 networks:
   jenkins:
+
+secrets:
+  jenkins-secret:
+    file: .secret

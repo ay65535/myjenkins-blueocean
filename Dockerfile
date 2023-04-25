@@ -54,9 +54,6 @@ ARG NO_PROXY
 # セットアップウィザードをスキップするための環境変数を設定
 ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 
-ENV JENKINS_ADMIN_USER=$JENKINS_ADMIN_USER
-ENV JENKINS_ADMIN_PASS=$JENKINS_ADMIN_PASS
-
 USER root
 
 # InstallCert.classをビルドステージからコピー
