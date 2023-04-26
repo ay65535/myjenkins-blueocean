@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Fix permisseions
-sudo chown -R jenkins:jenkins /var/jenkins_home/
+sudo chown jenkins:jenkins /var/jenkins_home/
 ls -laF --color /var/jenkins_home/
 
 # Resolve proxy related envs
@@ -16,7 +16,7 @@ sudo /usr/local/bin/update-cacert.sh
 sudo /usr/local/bin/install-cert.sh
 
 # JENKINS_URLが設定されていない場合、現在のホスト名を使用して設定
-if [ -z "$JENKINS_URL" ]; then
+if false && [ -z "$JENKINS_URL" ]; then
   os_name=$(uname)
   if [[ "$os_name" == "Linux" ]] || [[ "$os_name" == "Darwin" ]]; then
     JENKINS_HOST=$(hostname -f)

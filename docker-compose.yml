@@ -11,9 +11,9 @@ services:
       - https_proxy=${https_proxy}
       - no_proxy=${no_proxy}
     volumes:
-      - ./data/docker-certs:/certs/client
-      - ./data/ca-certs:/usr/local/share/ca-certificates
-      - ./data/jenkins_home:/var/jenkins_home
+      - ${VOLUME_ROOT}/docker-certs:/certs/client
+      - ${VOLUME_ROOT}/ca-certs:/usr/local/share/ca-certificates
+      - ${VOLUME_ROOT}/jenkins_home:/var/jenkins_home
     ports:
       - "2376:2376"
     networks:
@@ -26,29 +26,30 @@ services:
       context: .
       args:
         # ホストの環境変数をビルド時の引数 (ARG) として受け取る
+        JENKINS_VERSION: $JENKINS_VERSION
         PROXY: $PROXY
         NO_PROXY: $NO_PROXY
-        TRUST_HOST: $TRUST_HOST
-    image: myjenkins-blueocean:2.387.2-1
+    image: myjenkins-blueocean:${JENKINS_VERSION}-1
     container_name: jenkins-blueocean
     restart: on-failure
     environment:
       - DOCKER_HOST=tcp://docker:2376
       - DOCKER_CERT_PATH=/certs/client
       - DOCKER_TLS_VERIFY=1
-      - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}
-      - JENKINS_URL=${JENKINS_URL}
       - http_proxy=${http_proxy}
       - https_proxy=${https_proxy}
       - no_proxy=${no_proxy}
+      - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}
+      - JENKINS_URL=${JENKINS_URL}
     ports:
       - "8080:8080"
       - "50000:50000"
     volumes:
-      - ./data/docker-certs:/certs/client:ro
-      - ./data/ca-certs:/usr/local/share/ca-certificates
-      - ./data/jenkins_home:/var/jenkins_home
-      - ./conf/etc-environment.conf:/etc/environment
+      - ${VOLUME_ROOT}/docker-certs/:/certs/client:ro
+      - ${VOLUME_ROOT}/ca-certs/:/usr/local/share/ca-certificates/ca-certs/
+      - ${VOLUME_ROOT}/java-certs/:/opt/java/openjdk/lib/security/java-certs/
+      - ${VOLUME_ROOT}/jenkins_home/:/var/jenkins_home/
+      - ./etc/environment:/etc/environment
     secrets:
       - jenkins-secret
     networks:

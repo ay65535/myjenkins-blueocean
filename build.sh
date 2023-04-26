@@ -3,7 +3,9 @@
 # https://www.jenkins.io/doc/book/installing/docker/
 
 # プロキシ証明書を取得し、 conf/my_proxy.crt として保存しておく。 (取得元パスは修正必要)
-cp ~/.local/share/ca-certificates/my_proxy.crt conf/my_proxy.crt
+if [ -d /usr/local/share/ca-certificates ]; then
+  cp /usr/local/share/ca-certificates/my_proxy.crt conf/my_proxy.crt
+fi
 
 # Build a new docker image
 docker-compose build

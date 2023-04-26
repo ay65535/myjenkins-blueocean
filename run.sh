@@ -36,6 +36,15 @@ docker-compose up -d
 # docker-compose run --entrypoint bash jenkins-blueocean
 # docker run --rm --entrypoint='' jenkins/jenkins:2.387.2 ls -laF --color /etc/environment
 # docker run --rm --entrypoint='' jenkins/jenkins:2.387.2 id
+#   -v "$PWD"/etc/environment:/etc/environment \
+#   -v "$PWD"/etc/sudoers.d/:/etc/sudoers.d/ \
+# docker run --rm -u root -it \
+#   -v "$PWD"/usr/local/bin/:/usr/local/sbin/ \
+#   -v "$PWD"/usr/local/share/ca-certificates/:/usr/local/share/ca-certificates/ \
+#   -v "$PWD"/usr/share/jenkins/ref/plugins.txt:/usr/share/jenkins/ref/plugins.txt \
+#   -v "$PWD"/run/secrets/:/run/secrets/ \
+#   --entrypoint=/bin/bash jenkins/jenkins:2.387.2
+# docker ps -a
 
 # Delete bind mounted host machine files
 # docker-compose run --entrypoint '' jenkins-docker rm -rf /usr/local/share/ca-certificates/* /certs/client/* /var/jenkins_home/*

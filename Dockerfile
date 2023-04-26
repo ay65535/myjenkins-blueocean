@@ -1,53 +1,88 @@
-ARG JENKINS_VERSION=2.387.2
+# Set the base image
+ARG JENKINS_VERSION
+
 
 #
 # Build stage (Java)
 #
 
 # 公式Jenkinsイメージをベースにする
-FROM jenkins/jenkins:${JENKINS_VERSION} as javabuild
+FROM jenkins/jenkins:${JENKINS_VERSION} AS javabuild
 
-# Set the ARG for the proxy server
+# ビルド引数を定義
 ARG PROXY
 ARG NO_PROXY
-ARG TRUST_HOST
 
-ENV JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.trustStore=/var/jenkins_home/.keystore/cacerts"
+# ENV JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.trustStore=/var/jenkins_home/.keystore/cacerts"
 
 USER root
 
-COPY scripts/setenv.sh scripts/update-cacert.sh scripts/install-cert.sh /usr/local/bin/
+COPY etc/environment /etc/environment
+COPY usr/local/bin/* /usr/local/bin/
+COPY usr/local/share/ca-certificates/* /usr/local/share/ca-certificates/
+COPY usr/share/jenkins/ref/plugins.txt /usr/share/jenkins/ref/plugins.txt
 
-# Add your proxy certificate
-COPY conf/my_proxy.crt /usr/local/share/ca-certificates/
+RUN setenv.sh >/etc/environment && \
+    set -a && . /etc/environment && set +a && \
+    update-cacert.sh && \
+    #
+    # Clone InstallCert
+    git clone --depth=1 https://github.com/escline/InstallCert.git /InstallCert && \
+    # Build & run InstallCert
+    javac /InstallCert/InstallCert.java && \
+    cp /InstallCert/*.class /usr/local/bin/ && \
+    install-cert.sh
 
-# プラグインリストファイルをコピー
-COPY conf/plugins.txt /
-
-RUN update-cacert.sh && \
-  setenv.sh >/etc/environment && \
-  set -a && . /etc/environment && set +a && \
-  # Clone InstallCert
-  git clone --depth=1 https://github.com/escline/InstallCert.git /InstallCert
-
-# Build & run InstallCert
-RUN javac /InstallCert/InstallCert.java && \
-  cp /InstallCert/*.class /usr/local/bin/ && \
-  set -a && . /etc/environment && set +a && \
-  install-cert.sh
-
-# jenkins-plugin-cliを使用してプラグインをインストール
 USER jenkins
 RUN set -a && . /etc/environment && set +a && \
-  jenkins-plugin-cli --plugin-file /plugins.txt --list 2>&1 | grep -v 'Picked up JAVA_TOOL_OPTIONS'
+    # jenkins-plugin-cliを使用してプラグインをインストール
+    jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt --list 2>&1 | grep -v 'Picked up JAVA_TOOL_OPTIONS'
+
+
+#
+# Build stage (Apt)
+#
+
+FROM jenkins/jenkins:${JENKINS_VERSION} AS aptbuild
+
+# ビルド引数を定義
+ARG PROXY
+ARG NO_PROXY
+
+USER root
+# `http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY` は
+# ビルド時にだけプロキシを使用し、イメージには残さないためにコマンドの前に毎回記述しています。
+RUN http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY \
+    apt-get update && \
+    #
+    http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY DEBIAN_FRONTEND=noninteractive DEBCONF_NOWARNINGS=yes \
+    apt-get install -y --no-install-recommends lsb-release sudo && \
+    #
+    http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY \
+    curl -fsSLo /usr/share/keyrings/docker-archive-keyring.asc https://download.docker.com/linux/debian/gpg && \
+    #
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.asc] \
+    https://download.docker.com/linux/debian $(lsb_release -cs) stable" >/etc/apt/sources.list.d/docker.list && \
+    #
+    http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY \
+    apt-get update && \
+    #
+    http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY DEBIAN_FRONTEND=noninteractive DEBCONF_NOWARNINGS=yes \
+    apt-get install -y --no-install-recommends docker-ce-cli && \
+    #
+    rm -rf /var/lib/apt/lists/*
+
+# InstallCert.classをビルドステージからコピー
+COPY --from=javabuild /InstallCert/*.class /usr/local/bin/
+# Copy installed plugins from javabuild stage to final stage
+COPY --from=javabuild /usr/share/jenkins/ref/plugins /usr/share/jenkins/ref/plugins
 
 
 #
 # Final stage
 #
 
-# 公式Jenkinsイメージをベースにする
-FROM jenkins/jenkins:${JENKINS_VERSION}
+FROM aptbuild
 
 # ビルド引数を定義
 ARG PROXY
@@ -58,55 +93,20 @@ ENV JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.trustStore=/var/jenkins_home/.keysto
 
 USER root
 
-# InstallCert.classをビルドステージからコピー
-COPY --from=javabuild /InstallCert/*.class /usr/local/bin/
-
-# Copy installed plugins from javabuild stage to final stage
-COPY --from=javabuild /usr/share/jenkins/ref/plugins /usr/share/jenkins/ref/plugins
-
-# 管理ユーザを作成するスクリプトをコピー
-COPY scripts/create_admin_user.groovy /usr/share/jenkins/ref/init.groovy.d/
-
-# Add your proxy certificate
-COPY conf/my_proxy.crt /usr/local/share/ca-certificates/
-
-COPY scripts/setenv.sh scripts/update-cacert.sh scripts/install-cert.sh /usr/local/bin/
+COPY etc/environment /etc/environment
+COPY etc/sudoers.d/* /etc/sudoers.d/
+COPY usr/local/bin/* /usr/local/bin/
+COPY usr/share/jenkins/ref/init.groovy.d/* /usr/share/jenkins/ref/init.groovy.d/
 
 # Copy custom entrypoint script
-COPY --chown=jenkins:jenkins  scripts/entrypoint.sh /entrypoint.sh
+COPY --chown=jenkins:jenkins entrypoint.sh /entrypoint.sh
 
-# `http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY` は
-# ビルド時にだけプロキシを使用し、イメージには残さないためにコマンドの前に毎回記述しています。
-RUN http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY \
-  apt-get update \
-  && http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY DEBIAN_FRONTEND=noninteractive DEBCONF_NOWARNINGS=yes \
-  apt-get install -y --no-install-recommends lsb-release sudo \
-  && echo "jenkins ALL=(root) NOPASSWD: /usr/sbin/update-ca-certificates" > /etc/sudoers.d/jenkins \
-  && chmod 0440 /etc/sudoers.d/jenkins \
-  && http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY \
-  curl -fsSLo /usr/share/keyrings/docker-archive-keyring.asc \
-  https://download.docker.com/linux/debian/gpg \
-  && echo "deb [arch=$(dpkg --print-architecture) \
-  signed-by=/usr/share/keyrings/docker-archive-keyring.asc] \
-  https://download.docker.com/linux/debian \
-  $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list \
-  && http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY \
-  apt-get update \
-  && http_proxy=$PROXY https_proxy=$PROXY no_proxy=$NO_PROXY DEBIAN_FRONTEND=noninteractive DEBCONF_NOWARNINGS=yes \
-  apt-get install -y --no-install-recommends docker-ce-cli \
-  && rm -rf /var/lib/apt/lists/* \
-  # /var/jenkins_home のパーミッション修正はsudo無しでできるようにする
-  && echo 'jenkins ALL=(ALL) NOPASSWD: /bin/chown * /var/jenkins_home/*, /bin/chmod * /var/jenkins_home/*' >/etc/sudoers.d/chown-jenkinshome \
-  && chmod 0440 /etc/sudoers.d/chown-jenkinshome \
-  # 証明書の更新処理はsudo無しでできるようにする
-  && echo 'jenkins ALL=(ALL) NOPASSWD: /usr/local/bin/update-cacert.sh, /usr/local/bin/install-cert.sh' >/etc/sudoers.d/jenkins-scripts \
-  && chmod 0440 /etc/sudoers.d/jenkins-scripts \
-  # This preserves proxy settings from user environments of root
-  # equivalent users (group sudo)
-  && echo 'Defaults        env_keep += "http_proxy https_proxy ftp_proxy all_proxy no_proxy no_proxy"' >/etc/sudoers.d/env_variables \
-  && chmod 0440 /etc/sudoers.d/env_variables
+RUN chmod 0440 \
+    /etc/sudoers.d/01-keep-proxyenv \
+    /etc/sudoers.d/02-update-ca-certificates \
+    /etc/sudoers.d/03-chown \
+    /etc/sudoers.d/04-cert-scripts
 
-# rootでないとバインドマウントしたボリュームに書き込めない
 USER jenkins
 
 # エントリーポイントを上書きし、証明書を追加するスクリプトを実行
