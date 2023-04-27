@@ -13,24 +13,22 @@ FROM jenkins/jenkins:${JENKINS_VERSION} AS javabuild
 ARG PROXY
 ARG NO_PROXY
 
-# ENV JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.trustStore=/var/jenkins_home/.keystore/cacerts"
-
 USER root
 
 COPY etc/environment /etc/environment
-COPY usr/local/bin/* /usr/local/bin/
+COPY --chmod=755 usr/local/bin/* /usr/local/bin/
 COPY usr/local/share/ca-certificates/* /usr/local/share/ca-certificates/
 COPY usr/share/jenkins/ref/plugins.txt /usr/share/jenkins/ref/plugins.txt
 
 RUN setenv.sh >/etc/environment && \
     set -a && . /etc/environment && set +a && \
-    update-cacert.sh && \
     #
     # Clone InstallCert
     git clone --depth=1 https://github.com/escline/InstallCert.git /InstallCert && \
     # Build & run InstallCert
     javac /InstallCert/InstallCert.java && \
     cp /InstallCert/*.class /usr/local/bin/ && \
+    update-cacert.sh && \
     install-cert.sh
 
 USER jenkins
@@ -84,28 +82,20 @@ COPY --from=javabuild /usr/share/jenkins/ref/plugins /usr/share/jenkins/ref/plug
 
 FROM aptbuild
 
-# ビルド引数を定義
-ARG PROXY
-ARG NO_PROXY
-
 # セットアップウィザードをスキップするための環境変数を設定
-ENV JAVA_OPTS="${JAVA_OPTS} -Djavax.net.ssl.trustStore=/var/jenkins_home/.keystore/cacerts -Djenkins.install.runSetupWizard=false"
+ENV JAVA_OPTS="${JAVA_OPTS} -Djenkins.install.runSetupWizard=false"
 
 USER root
 
 COPY etc/environment /etc/environment
-COPY etc/sudoers.d/* /etc/sudoers.d/
-COPY usr/local/bin/* /usr/local/bin/
+COPY --chmod=0440 etc/sudoers.d/* /etc/sudoers.d/
+COPY --chmod=755 usr/local/bin/* /usr/local/bin/
 COPY usr/share/jenkins/ref/init.groovy.d/* /usr/share/jenkins/ref/init.groovy.d/
 
 # Copy custom entrypoint script
-COPY --chown=jenkins:jenkins entrypoint.sh /entrypoint.sh
+COPY --chown=jenkins:jenkins --chmod=755 entrypoint.sh /entrypoint.sh
 
-RUN chmod 0440 \
-    /etc/sudoers.d/01-keep-proxyenv \
-    /etc/sudoers.d/02-update-ca-certificates \
-    /etc/sudoers.d/03-chown \
-    /etc/sudoers.d/04-cert-scripts
+RUN cp -a /opt/java/openjdk/lib/security/ /opt/java/openjdk/lib/security.default
 
 USER jenkins
 

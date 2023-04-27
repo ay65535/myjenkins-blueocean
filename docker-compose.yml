@@ -12,7 +12,6 @@ services:
       - no_proxy=${no_proxy}
     volumes:
       - ${VOLUME_ROOT}/docker-certs:/certs/client
-      - ${VOLUME_ROOT}/ca-certs:/usr/local/share/ca-certificates
       - ${VOLUME_ROOT}/jenkins_home:/var/jenkins_home
     ports:
       - "2376:2376"
@@ -38,18 +37,25 @@ services:
       - DOCKER_TLS_VERIFY=1
       - http_proxy=${http_proxy}
       - https_proxy=${https_proxy}
+      - ftp_proxy=${ftp_proxy}
+      - all_proxy=${all_proxy}
       - no_proxy=${no_proxy}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+      - FTP_PROXY=${FTP_PROXY}
+      - ALL_PROXY=${ALL_PROXY}
+      - NO_PROXY=${NO_PROXY}
       - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}
-      - JENKINS_URL=${JENKINS_URL}
+      # - JENKINS_URL=${JENKINS_URL}
     ports:
       - "8080:8080"
       - "50000:50000"
     volumes:
-      - ${VOLUME_ROOT}/docker-certs/:/certs/client:ro
-      - ${VOLUME_ROOT}/ca-certs/:/usr/local/share/ca-certificates/ca-certs/
-      - ${VOLUME_ROOT}/java-certs/:/opt/java/openjdk/lib/security/java-certs/
-      - ${VOLUME_ROOT}/jenkins_home/:/var/jenkins_home/
       - ./etc/environment:/etc/environment
+      - ./usr/local/share/ca-certificates/:/usr/local/share/ca-certificates/
+      - ${VOLUME_ROOT}/docker-certs/:/certs/client:ro
+      - ${VOLUME_ROOT}/java-certs/:/opt/java/openjdk/lib/security/
+      - ${VOLUME_ROOT}/jenkins_home/:/var/jenkins_home/
     secrets:
       - jenkins-secret
     networks:
@@ -60,4 +66,4 @@ networks:
 
 secrets:
   jenkins-secret:
-    file: conf/jenkins-secret.conf
+    file: run/secrets/jenkins-secret

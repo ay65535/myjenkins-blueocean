@@ -83,5 +83,4 @@ $RECYCLE.BIN/
 *.pem
 *secret*
 /data/
-dockerfile.sh
-etc-environment.conf
+docker*file.sh

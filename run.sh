@@ -1,22 +1,29 @@
 #!/bin/bash
-# ./run.sh
+#
+# .EXAMPLE
+#   ./run.sh
+# .EXAMPLE
+#   export JENKINS_URL=http://10.x.y.z:8080/
+#   ./run.sh
+# .EXAMPLE
+#   JENKINS_URL=http://10.x.y.z:8080/ ./run.sh
 
-# set $JENKINS_HOST
-os_name=$(uname)
-if [[ "$os_name" == "Linux" ]] || [[ "$os_name" == "Darwin" ]]; then
-  JENKINS_HOST=$(hostname -f)
-elif [[ "$os_name" == "MINGW"* ]] || [[ "$os_name" == "MSYS"* ]]; then
-  JENKINS_HOST=$(echo "$HOSTNAME.$USERDNSDOMAIN" | tr '[:upper:]' '[:lower:]')
-else
-  echo "Unsupported environment."
-  exit 1
-fi
-echo "JENKINS_HOST: $JENKINS_HOST"
+# JENKINS_URLが設定されていない場合、現在のホスト名を使用して設定
+# if [ -z "$JENKINS_URL" ]; then
+#   os_name=$(uname)
+#   if [[ "$os_name" == "Linux" ]] || [[ "$os_name" == "Darwin" ]]; then
+#     JENKINS_HOST=$(hostname -f)
+#   elif [[ "$os_name" == "MINGW"* ]] || [[ "$os_name" == "MSYS"* ]]; then
+#     JENKINS_HOST=$(echo "$HOSTNAME.$USERDNSDOMAIN" | tr '[:upper:]' '[:lower:]')
+#   else
+#     JENKINS_HOST=localhost
+#   fi
 
-JENKINS_URL="http://${JENKINS_HOST}:8080/"
-echo "JENKINS_URL : $JENKINS_URL"
+#   JENKINS_URL="http://${JENKINS_HOST}:8080/"
+#   echo "JENKINS_URL : $JENKINS_URL"
 
-export JENKINS_HOST JENKINS_URL
+#   export JENKINS_HOST JENKINS_URL
+# fi
 
 # Run your own myjenkins-blueocean image as a container in Docker
 echo "Jenkinsを起動します。"
@@ -53,4 +60,16 @@ docker-compose up -d
 # ls -laFR --color ~/jenkins-volume
 
 # Cleanup the Docker container and volume
-# docker-compose down --remove-orphans --volumes
+: "
+docker-compose build
+docker-compose up -d
+docker-compose logs jenkins-blueocean
+docker-compose logs -f jenkins-blueocean
+docker compose exec -it jenkins-blueocean bash
+docker compose exec -it -u root jenkins-blueocean bash
+docker-compose down --remove-orphans --volumes
+. .env
+echo $VOLUME_ROOT
+sudo rm -rf $VOLUME_ROOT
+ls -la $VOLUME_ROOT
+"

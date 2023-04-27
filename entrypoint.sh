@@ -7,30 +7,15 @@ ls -laF --color /var/jenkins_home/
 # Resolve proxy related envs
 # set -a && . /etc/environment && set +a
 
-env | grep -iE 'proxy|java|jdk|jenkins|docker' | sort
+echo "::: $0 :::"
+# for debug:
+# env | grep -iE 'proxy|trust|java|jdk|jenkins|docker' | sort -f
 
 # Execute update-cacert.sh
-sudo /usr/local/bin/update-cacert.sh
+sudo /usr/local/bin/update-cacert.sh "$JAVA_HOME"
 
 # Execute install-cert.sh
-sudo /usr/local/bin/install-cert.sh
-
-# JENKINS_URLが設定されていない場合、現在のホスト名を使用して設定
-if false && [ -z "$JENKINS_URL" ]; then
-  os_name=$(uname)
-  if [[ "$os_name" == "Linux" ]] || [[ "$os_name" == "Darwin" ]]; then
-    JENKINS_HOST=$(hostname -f)
-  elif [[ "$os_name" == "MINGW"* ]] || [[ "$os_name" == "MSYS"* ]]; then
-    JENKINS_HOST=$(echo "$HOSTNAME.$USERDNSDOMAIN" | tr '[:upper:]' '[:lower:]')
-  else
-    JENKINS_HOST=localhost
-  fi
-
-  JENKINS_URL="http://${JENKINS_HOST}:8080/"
-  echo "JENKINS_URL : $JENKINS_URL"
-
-  export JENKINS_HOST JENKINS_URL
-fi
+sudo /usr/local/bin/install-cert.sh "$JAVA_HOME"
 
 ## How to check the original entrypoint command:
 # docker pull jenkins/jenkins:2.387.2
