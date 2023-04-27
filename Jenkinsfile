@@ -1,16 +1,19 @@
 pipeline {
   agent {
-    docker {
-      image 'alpine'
+    dockerfile {
+      filename 'Dockerfile'
     }
 
   }
   stages {
     stage('ls') {
       steps {
-        sh 'ls -la'
+        sh 'ls -laF'
       }
     }
 
+  }
+  environment {
+    JENKINS_VERSION = '2.387.2'
   }
 }
