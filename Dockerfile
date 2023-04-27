@@ -16,7 +16,10 @@ ARG NO_PROXY
 USER root
 
 COPY etc/environment /etc/environment
-COPY --chmod=755 usr/local/bin/* /usr/local/bin/
+# ERROR: Service 'jenkins-blueocean' failed to build: the --chmod option requires BuildKit.
+# Refer to https://docs.docker.com/go/buildkit/ to learn how to build images with BuildKit enabled
+#COPY --chmod=755 usr/local/bin/* /usr/local/bin/
+COPY usr/local/bin/* /usr/local/bin/
 COPY usr/local/share/ca-certificates/* /usr/local/share/ca-certificates/
 COPY usr/share/jenkins/ref/plugins.txt /usr/share/jenkins/ref/plugins.txt
 
@@ -88,12 +91,17 @@ ENV JAVA_OPTS="${JAVA_OPTS} -Djenkins.install.runSetupWizard=false"
 USER root
 
 COPY etc/environment /etc/environment
-COPY --chmod=0440 etc/sudoers.d/* /etc/sudoers.d/
-COPY --chmod=755 usr/local/bin/* /usr/local/bin/
+# ERROR: Service 'jenkins-blueocean' failed to build: the --chmod option requires BuildKit.
+# Refer to https://docs.docker.com/go/buildkit/ to learn how to build images with BuildKit enabled
+#COPY --chmod=0440 etc/sudoers.d/* /etc/sudoers.d/
+#COPY --chmod=755 usr/local/bin/* /usr/local/bin/
+COPY etc/sudoers.d/* /etc/sudoers.d/
+COPY usr/local/bin/* /usr/local/bin/
 COPY usr/share/jenkins/ref/init.groovy.d/* /usr/share/jenkins/ref/init.groovy.d/
 
 # Copy custom entrypoint script
-COPY --chown=jenkins:jenkins --chmod=755 entrypoint.sh /entrypoint.sh
+#COPY --chown=jenkins:jenkins --chmod=755 entrypoint.sh /entrypoint.sh
+COPY --chown=jenkins:jenkins entrypoint.sh /entrypoint.sh
 
 RUN cp -a /opt/java/openjdk/lib/security/ /opt/java/openjdk/lib/security.default
 

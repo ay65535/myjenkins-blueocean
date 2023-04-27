@@ -17,6 +17,7 @@ services:
       - "2376:2376"
     networks:
       - jenkins
+      - jenkins-external
     # docker:dind の引数。Linux環境でストレージ効率を最適化するためのオプション。
     command: --storage-driver overlay2
 
@@ -60,10 +61,14 @@ services:
       - jenkins-secret
     networks:
       - jenkins
-
-networks:
-  jenkins:
+      - jenkins-external
 
 secrets:
   jenkins-secret:
     file: run/secrets/jenkins-secret
+
+networks:
+  jenkins:
+  # docker network create --subnet 10.6.80.0/24 jenkins-external
+  jenkins-external:
+    external: true

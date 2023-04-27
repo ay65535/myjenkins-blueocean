@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Fix permisseions
-sudo chown jenkins:jenkins /var/jenkins_home/
+sudo chown -R jenkins:jenkins /var/jenkins_home/
 ls -laF --color /var/jenkins_home/
 
 # Resolve proxy related envs
