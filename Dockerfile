@@ -105,6 +105,11 @@ COPY --chown=jenkins:jenkins entrypoint.sh /entrypoint.sh
 
 RUN cp -a /opt/java/openjdk/lib/security/ /opt/java/openjdk/lib/security.default
 
+# change uid:gid of jenkins
+ARG HOST_UID=${HOST_UID:-1000}
+ARG HOST_GID=${HOST_GID:-1000}
+RUN usermod --uid "$HOST_UID" --gid "$HOST_GID" jenkins
+
 USER jenkins
 
 # エントリーポイントを上書きし、証明書を追加するスクリプトを実行

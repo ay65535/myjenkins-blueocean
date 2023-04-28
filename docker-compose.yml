@@ -2,7 +2,13 @@ version: "3.3"
 
 services:
   jenkins-docker:
-    image: docker:dind
+    build:
+      context: .
+      dockerfile: jenkins-docker.dockerfile
+      args:
+        # ホストの環境変数をビルド時の引数 (ARG) として受け取る
+        https_proxy: ${https_proxy}
+    image: myjenkins-docker
     container_name: jenkins-docker
     privileged: true
     environment:
@@ -10,6 +16,7 @@ services:
       - http_proxy=${http_proxy}
       - https_proxy=${https_proxy}
       - no_proxy=${no_proxy}
+      - JENKINS_AGENT_SSH_PUBKEY=${JENKINS_AGENT_SSH_PUBKEY}
     volumes:
       - ${VOLUME_ROOT}/docker-certs:/certs/client
       - ${VOLUME_ROOT}/jenkins_home:/var/jenkins_home
@@ -29,6 +36,8 @@ services:
         JENKINS_VERSION: $JENKINS_VERSION
         PROXY: $PROXY
         NO_PROXY: $NO_PROXY
+        HOST_UID: $HOST_UID
+        HOST_GID: $HOST_GID
     image: myjenkins-blueocean:${JENKINS_VERSION}-1
     container_name: jenkins-blueocean
     restart: on-failure
@@ -48,9 +57,12 @@ services:
       - NO_PROXY=${NO_PROXY}
       - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS}
       # - JENKINS_URL=${JENKINS_URL}
-    ports:
-      - "8080:8080"
-      - "50000:50000"
+      # export HOST_UID=$(id -u)
+      # export HOST_GID=$(id -g)
+      - HOST_UID
+      - HOST_GID
+    # user: "1012:1000"
+    # user: "${HOST_UID}:${HOST_GID}"
     volumes:
       - ./etc/environment:/etc/environment
       - ./usr/local/share/ca-certificates/:/usr/local/share/ca-certificates/
@@ -59,6 +71,9 @@ services:
       - ${VOLUME_ROOT}/jenkins_home/:/var/jenkins_home/
     secrets:
       - jenkins-secret
+    ports:
+      - "8080:8080"
+      - "50000:50000"
     networks:
       - jenkins
       - jenkins-external
