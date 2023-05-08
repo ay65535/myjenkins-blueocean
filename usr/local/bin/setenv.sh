@@ -5,9 +5,9 @@
 # if 1st parameter is not set, use the value of PROXY, if it is not set, use the value of HTTP_PROXY/http_proxy.
 PROXY=${1-${PROXY:-${HTTP_PROXY:-$http_proxy}}}
 # if 2nd parameter is not set, use the value of NO_PROXY/no_proxy.
-NO_PROXY=${2-$NO_PROXY:-${no_proxy}}
+NO_PROXY=${2-${NO_PROXY:-${no_proxy}}}
 # if 3rd parameter is not set, use the value of JENKINS_AGENT_SSH_PUBKEY, if it is not set, use the content of ~/.ssh/jenkins_agent_key.pub.
-JENKINS_AGENT_SSH_PUBKEY=${3-${JENKINS_AGENT_SSH_PUBKEY:-$(cat ~/.ssh/jenkins_agent_key.pub)}}
+JENKINS_AGENT_SSH_PUBKEY=${3-${JENKINS_AGENT_SSH_PUBKEY}}
 
 ## Build environment variables.
 
@@ -81,8 +81,8 @@ ${COMMENT_PROXY_SEC}ALL_PROXY=$PROXY
 ${COMMENT_NOPROXY_SEC}no_proxy=$no_proxy
 ${COMMENT_NOPROXY_SEC}NO_PROXY=$NO_PROXY
 
-${COMMENT_JAVA_TOOL_OPTIONS_SEC}JAVA_TOOL_OPTIONS=$JAVA_TOOL_OPTIONS
+${COMMENT_JAVA_TOOL_OPTIONS_SEC}JAVA_TOOL_OPTIONS="$JAVA_TOOL_OPTIONS"
 
 # JENKINS_AGENT_SSH_PUBKEY=\$(cat ~/.ssh/jenkins_agent_key.pub) && echo \$JENKINS_AGENT_SSH_PUBKEY
-${COMMENT_JENKINS_AGENT_SSH_PUBKEY_SEC}JENKINS_AGENT_SSH_PUBKEY=$JENKINS_AGENT_SSH_PUBKEY
+${COMMENT_JENKINS_AGENT_SSH_PUBKEY_SEC}JENKINS_AGENT_SSH_PUBKEY='$JENKINS_AGENT_SSH_PUBKEY'
 EOF
