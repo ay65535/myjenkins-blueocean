@@ -77,6 +77,8 @@ services:
     networks:
       - jenkins
       - jenkins-external
+    links:
+      - jenkins-docker:docker
 
 secrets:
   jenkins-secret:
