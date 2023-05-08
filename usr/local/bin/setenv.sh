@@ -37,9 +37,9 @@ else
 fi
 
 if [ -n "$COMMENT_PROXY_SEC" ] || [ -n "$COMMENT_NOPROXY_SEC" ]; then
-  COMMENT_JAVA_TOOL_OPTIONS_SEC=
-else
   COMMENT_JAVA_TOOL_OPTIONS_SEC=#
+else
+  COMMENT_JAVA_TOOL_OPTIONS_SEC=
 fi
 
 if [ -n "$JENKINS_AGENT_SSH_PUBKEY" ]; then
@@ -61,7 +61,7 @@ VOLUME_ROOT=./data
 HOST_UID=$(id -u)
 HOST_GID=$(id -g)
 
-# TRUST_HOST=updates.jenkins.io,mirrors.jenkins.io
+#TRUST_HOST=updates.jenkins.io,mirrors.jenkins.io
 
 ${COMMENT_PROXY_SEC}PROXY=$PROXY
 ${COMMENT_PROXY_SEC}PROXY_HOST=$PROXY_HOST
