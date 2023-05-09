@@ -22,11 +22,11 @@ services:
       - ${VOLUME_ROOT}/jenkins_home:/var/jenkins_home
     ports:
       - "2376:2376"
+      # - "22:22"
+      # - "10022:22"
     networks:
       - jenkins
       - jenkins-external
-    # docker:dind の引数。Linux環境でストレージ効率を最適化するためのオプション。
-    command: --storage-driver overlay2
 
   jenkins-blueocean:
     build:
