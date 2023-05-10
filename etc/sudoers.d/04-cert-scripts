@@ -1,0 +1,1 @@
+jenkins ALL=(ALL) NOPASSWD: /usr/local/bin/update-cacert.sh, /usr/local/bin/install-cert.sh

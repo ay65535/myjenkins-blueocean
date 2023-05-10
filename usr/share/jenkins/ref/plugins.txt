@@ -1,0 +1,10 @@
+blueocean:1.27.3
+docker-workflow:563.vd5d2e5c4007f
+powershell:2.0
+parameterized-trigger:2.45
+nodelabelparameter:1.11.0
+configuration-as-code:1625.v27444588cc3d
+pipeline-utility-steps:2.15.2
+ws-cleanup:0.45
+timestamper:1.25
+ssh-slaves:2.877.v365f5eb_a_b_eec

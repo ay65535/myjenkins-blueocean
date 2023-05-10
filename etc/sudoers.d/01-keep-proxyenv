@@ -1,0 +1,2 @@
+# Defaults        env_keep += "PATH"
+Defaults        env_keep += "http_proxy https_proxy ftp_proxy all_proxy no_proxy no_proxy"
